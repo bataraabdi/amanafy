@@ -1,0 +1,118 @@
+/* layout.css - Structure & Layout */
+:root {
+  --primary: #a16ae8;
+  --primary-gradient: linear-gradient(135deg, #a673ee, #6a5af9);
+  --success: #1bcfb4;
+  --success-gradient: linear-gradient(135deg, #84d9d2, #07cdae);
+  --danger: #fe7096;
+  --danger-gradient: linear-gradient(135deg, #ffbf96, #fe7096);
+  --warning: #fed713;
+  --info: #198ae3;
+  --light: #f8f9fa;
+  --dark: #3e4b5b;
+  --bg-main: #f4f5fa;
+  --card-bg: #ffffff;
+  --text-main: #2c2c2c;
+  --text-muted: #9aa0ac;
+  --sidebar-width: 260px;
+  --navbar-height: 70px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --shadow-sm: 0 4px 15px rgba(0,0,0,0.03);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.05);
+  --transition: all 0.3s ease;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  background: #ffffff;
+  border-right: 1px solid #f1f1f1;
+  z-index: 1001;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar {
+  height: var(--navbar-height);
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: var(--sidebar-width);
+  background: #ffffff;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  z-index: 1000;
+  transition: var(--transition);
+}
+
+.navbar-left, .navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-header {
+  height: 80px;
+  flex-shrink: 0;
+}
+
+.sidebar-nav {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-footer {
+  flex-shrink: 0;
+}
+
+.main-content {
+  margin-left: var(--sidebar-width);
+  padding: 30px;
+  padding-top: calc(var(--navbar-height) + 30px);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+}
+
+.content-wrapper {
+  flex-grow: 1;
+}
+
+.footer {
+  padding: 20px 0;
+  border-top: 1px solid #f1f1f1;
+  margin-top: 40px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 991px) {
+  .sidebar { transform: translateX(-100%); }
+  .navbar, .main-content { left: 0; margin-left: 0; }
+  .sidebar.open { transform: translateX(0); }
+}

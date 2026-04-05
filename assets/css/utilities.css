@@ -1,0 +1,43 @@
+/* utilities.css - Utility Classes */
+
+.text-primary { color: var(--primary) !important; }
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-info { color: var(--info) !important; }
+.text-muted { color: var(--text-muted) !important; }
+
+.bg-primary-soft { background-color: rgba(161, 106, 232, 0.1); }
+.bg-success-soft { background-color: rgba(68, 172, 255, 0.12); }
+.bg-danger-soft { background-color: rgba(254, 112, 150, 0.1); }
+.bg-info-soft { background-color: rgba(25, 138, 227, 0.1); }
+
+.rounded-sm { border-radius: var(--radius-sm) !important; }
+.rounded-md { border-radius: var(--radius-md) !important; }
+.rounded-lg { border-radius: var(--radius-lg) !important; }
+.rounded-xl { border-radius: var(--radius-xl) !important; }
+
+.shadow-none { box-shadow: none !important; }
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.shadow-md { box-shadow: var(--shadow-md) !important; }
+
+.fw-semibold { font-weight: 600 !important; }
+.fw-bold { font-weight: 700 !important; }
+
+.mt-24 { margin-top: 24px; }
+.mb-24 { margin-bottom: 24px; }
+
+.badge-pill {
+    padding: 0.4em 0.8em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 50rem;
+}
+
+.badge-success { background-color: var(--success); color: #fff; }
+.badge-danger { background-color: var(--danger); color: #fff; }
+.badge-secondary { background-color: #eee; color: #777; }

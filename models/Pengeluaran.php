@@ -82,8 +82,29 @@ class Pengeluaran extends Model {
         return $this->sum('jumlah');
     }
 
-    public function getTotalByKategori(): array {
-        return $this->query("SELECT kp.nama_kategori, COALESCE(SUM(p.jumlah), 0) as total FROM kategori_pengeluaran kp LEFT JOIN pengeluaran p ON kp.id = p.kategori_id GROUP BY kp.id, kp.nama_kategori ORDER BY total DESC");
+    public function getTotalByKategori(array $filters = []): array {
+        $sql = "SELECT kp.nama_kategori, SUM(p.jumlah) as total FROM pengeluaran p INNER JOIN kategori_pengeluaran kp ON p.kategori_id = kp.id WHERE 1=1";
+        $params = [];
+
+        if (!empty($filters['tanggal_dari'])) {
+            $sql .= " AND p.tanggal >= :dari";
+            $params[':dari'] = $filters['tanggal_dari'];
+        }
+        if (!empty($filters['tanggal_sampai'])) {
+            $sql .= " AND p.tanggal <= :sampai";
+            $params[':sampai'] = $filters['tanggal_sampai'];
+        }
+        if (!empty($filters['bulan'])) {
+            $sql .= " AND DATE_FORMAT(p.tanggal, '%Y-%m') = :bulan";
+            $params[':bulan'] = $filters['bulan'];
+        }
+        if (!empty($filters['sampai_tanggal'])) {
+            $sql .= " AND p.tanggal <= :sampai_tanggal";
+            $params[':sampai_tanggal'] = $filters['sampai_tanggal'];
+        }
+
+        $sql .= " GROUP BY kp.id, kp.nama_kategori HAVING total > 0 ORDER BY total DESC";
+        return $this->query($sql, $params);
     }
 
     public function getMonthlyData(string $year): array {

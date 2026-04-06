@@ -17,6 +17,8 @@ if ($jenis === 'harian') {
     $periodeLabel = ($months[(int)($parts[1] ?? 1)] ?? '') . ' ' . ($parts[0] ?? $tahun);
 } elseif ($jenis === 'tahunan') {
     $periodeLabel = 'Tahun ' . $tahun;
+} elseif ($jenis === 'kustom') {
+    $periodeLabel = formatDate($_GET['tanggal_dari'] ?? date('Y-m-01')) . ' s.d ' . formatDate($_GET['tanggal_sampai'] ?? date('Y-m-t'));
 }
 ?>
 
@@ -187,12 +189,25 @@ if ($jenis === 'harian') {
                     <?php endforeach; ?>
                 </select>
             </div>
+            
+            <?php if ($report === 'arus-kas'): ?>
+            <div class="col-12 col-sm-6 col-md-3">
+                <label class="form-label fw-semibold small mb-1">Tanggal Mulai</label>
+                <input type="date" name="tanggal_dari" class="form-control" value="<?= e($_GET['tanggal_dari'] ?? date('Y-m-01')) ?>" required>
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+                <label class="form-label fw-semibold small mb-1">Tanggal Sampai</label>
+                <input type="date" name="tanggal_sampai" class="form-control" value="<?= e($_GET['tanggal_sampai'] ?? date('Y-m-t')) ?>" required>
+            </div>
+            <input type="hidden" name="periode" value="kustom">
+            <?php else: ?>
             <div class="col-12 col-sm-6 col-md-2">
                 <label class="form-label fw-semibold small mb-1">Periode</label>
                 <select name="periode" id="periodeSelect" class="form-select">
                     <option value="harian"  <?= $jenis === 'harian'  ? 'selected' : '' ?>>Harian</option>
                     <option value="bulanan" <?= $jenis === 'bulanan' ? 'selected' : '' ?>>Bulanan</option>
                     <option value="tahunan" <?= $jenis === 'tahunan' ? 'selected' : '' ?>>Tahunan</option>
+                    <option value="kustom" <?= $jenis === 'kustom' ? 'selected' : '' ?>>Kustom Kapanpun</option>
                 </select>
             </div>
             <div class="col-12 col-sm-6 col-md-2 periode-field harian" style="<?= $jenis !== 'harian'  ? 'display:none' : '' ?>">
@@ -211,6 +226,20 @@ if ($jenis === 'harian') {
                     <?php endfor; ?>
                 </select>
             </div>
+            <div class="col-12 col-sm-6 col-md-4 periode-field kustom" style="<?= $jenis !== 'kustom' ? 'display:none' : '' ?>">
+                <div class="d-flex gap-2">
+                    <div>
+                        <label class="form-label fw-semibold small mb-1">Dari Tanggal</label>
+                        <input type="date" name="tanggal_dari" class="form-control" value="<?= e($_GET['tanggal_dari'] ?? date('Y-m-01')) ?>">
+                    </div>
+                    <div>
+                        <label class="form-label fw-semibold small mb-1">Sampai Tanggal</label>
+                        <input type="date" name="tanggal_sampai" class="form-control" value="<?= e($_GET['tanggal_sampai'] ?? date('Y-m-t')) ?>">
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary btn-export">
                     <i class="bi bi-search"></i> <span class="d-none d-sm-inline">Tampilkan</span>
@@ -624,9 +653,12 @@ if ($jenis === 'harian') {
 <!-- Export & Periode Scripts -->
 <script>
 // Toggle periode filter fields
-document.getElementById('periodeSelect').addEventListener('change', function () {
-    document.querySelectorAll('.periode-field').forEach(el => el.style.display = 'none');
-    const target = document.querySelector('.periode-field.' + this.value);
-    if (target) target.style.display = 'block';
-});
+const periodeSelect = document.getElementById('periodeSelect');
+if (periodeSelect) {
+    periodeSelect.addEventListener('change', function () {
+        document.querySelectorAll('.periode-field').forEach(el => el.style.display = 'none');
+        const target = document.querySelector('.periode-field.' + this.value);
+        if (target) target.style.display = 'block';
+    });
+}
 </script>

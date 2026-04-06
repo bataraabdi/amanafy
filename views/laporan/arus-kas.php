@@ -4,104 +4,107 @@
 <div class="report-page" id="report-content">
     <?php include BASE_PATH . '/views/laporan/_kop.php'; ?>
 
-    <div class="report-header-bar">
-        <h5><i class="bi bi-arrow-left-right text-primary me-2"></i>Laporan Arus Kas (Cash Flow)</h5>
-        <span class="period-chip"><i class="bi bi-calendar3"></i> <?= e($periode ?? '-') ?></span>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="rpt-actions no-print">
-        <button onclick="exportRpt('excel')" class="rpt-btn excel"><i class="bi bi-file-earmark-excel"></i> Excel</button>
-        <button onclick="exportRpt('pdf')"   class="rpt-btn pdf"  ><i class="bi bi-file-earmark-pdf"></i> PDF</button>
-        <button onclick="window.print()"     class="rpt-btn print"><i class="bi bi-printer"></i> Print</button>
-    </div>
-
-    <!-- Summary Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-4">
-            <div class="rpt-stat green">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="rpt-icon"><i class="bi bi-graph-up-arrow"></i></div>
-                    <div>
-                        <label>Total Masuk</label>
-                        <h3><?= rupiah($total_inflow ?? 0) ?></h3>
-                    </div>
-                </div>
-                <i class="bi bi-wallet2 rpt-bg-icon"></i>
-            </div>
+    <div class="report-header-bar d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h5 class="mb-1 text-primary fw-bold text-uppercase" style="letter-spacing: 1px;">Laporan Arus Kas</h5>
+            <small class="text-muted fw-semibold"><?= formatDate($tanggal_dari) ?> - <?= formatDate($tanggal_sampai) ?></small>
         </div>
-        <div class="col-6 col-md-4">
-            <div class="rpt-stat red">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="rpt-icon"><i class="bi bi-graph-down-arrow"></i></div>
-                    <div>
-                        <label>Total Keluar</label>
-                        <h3><?= rupiah($total_outflow ?? 0) ?></h3>
-                    </div>
-                </div>
-                <i class="bi bi-cart-x rpt-bg-icon"></i>
-            </div>
-        </div>
-        <?php $netCashVal = $net_cash ?? 0; ?>
-        <div class="col-12 col-md-4">
-            <div class="rpt-stat <?= $netCashVal >= 0 ? 'blue' : 'red' ?>">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="rpt-icon"><i class="bi bi-currency-exchange"></i></div>
-                    <div>
-                        <label>Net Cash Flow</label>
-                        <h3><?= ($netCashVal < 0 ? '-' : '+') . rupiah(abs($netCashVal)) ?></h3>
-                    </div>
-                </div>
-                <i class="bi bi-safe rpt-bg-icon"></i>
-            </div>
+        <div class="rpt-actions no-print m-0">
+            <button onclick="exportRpt('excel')" class="rpt-btn excel"><i class="bi bi-file-earmark-excel"></i> Excel</button>
+            <button onclick="exportRpt('pdf')"   class="rpt-btn pdf"  ><i class="bi bi-file-earmark-pdf"></i> PDF</button>
+            <button onclick="window.print()"     class="rpt-btn print"><i class="bi bi-printer"></i> Print</button>
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="rpt-card">
-        <div class="rpt-card-header">
-            <h6><i class="bi bi-table text-primary"></i>Rincian Mutasi Arus Kas</h6>
-        </div>
-        <?php if (empty($cashflow)): ?>
-            <div class="rpt-empty"><i class="bi bi-inbox"></i><p>Belum ada mutasi keuangan pada periode ini.</p></div>
-        <?php else: ?>
-            <div class="table-responsive">
-                <table class="rpt-table">
-                    <thead>
+    <div class="table-responsive">
+        <table class="table table-borderless table-sm mb-0 p-3" style="font-family: Arial, sans-serif; font-size: 0.95rem;">
+            <tbody>
+                <!-- Pemasukan -->
+                <tr>
+                    <td colspan="2" class="fw-bold text-primary pt-3" style="font-size: 1.05rem;">Aktivitas Pemasukan</td>
+                </tr>
+                <?php if(empty($kategoriPemasukan)): ?>
+                    <tr>
+                        <td class="ps-4 text-muted">Belum ada data pemasukan pada periode ini.</td>
+                        <td></td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($kategoriPemasukan as $kat): ?>
                         <tr>
-                            <th>Tanggal</th>
-                            <th>Fund Category</th>
-                            <th class="text-end">Pemasukan</th>
-                            <th class="text-end">Pengeluaran</th>
-                            <th class="text-end">Net Flow</th>
+                            <td class="ps-4" style="width: 70%;"><?= e($kat['nama_kategori']) ?></td>
+                            <td class="text-end fw-semibold text-success"><?= rupiah((float)$kat['total']) ?></td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($cashflow as $row): ?>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                <tr>
+                    <td class="ps-4 text-end text-muted small" style="border-bottom:1px solid #dee2e6;">Total Pemasukan :</td>
+                    <td class="text-end fw-bold text-success" style="border-bottom:1px solid #dee2e6;"><?= rupiah($total_inflow ?? 0) ?></td>
+                </tr>
+
+                <!-- Pengeluaran -->
+                <tr>
+                    <td colspan="2" class="fw-bold text-danger pt-4" style="font-size: 1.05rem;">Aktivitas Pengeluaran</td>
+                </tr>
+                <?php if(empty($kategoriPengeluaran)): ?>
+                    <tr>
+                        <td class="ps-4 text-muted">Belum ada data pengeluaran pada periode ini.</td>
+                        <td></td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($kategoriPengeluaran as $kat): ?>
                         <tr>
-                            <td><?= formatDate($row['date']) ?></td>
-                            <td><span class="badge text-bg-light border"><?= e($row['fund_category']) ?></span></td>
-                            <td class="text-end fw-semibold text-success"><?= rupiah((float)$row['inflow']) ?></td>
-                            <td class="text-end fw-semibold text-danger"><?= rupiah((float)$row['outflow']) ?></td>
-                            <td class="text-end fw-bold <?= (float)$row['net'] >= 0 ? 'text-success' : 'text-danger' ?>">
-                                <?= (float)$row['net'] >= 0 ? '+' : '' ?><?= rupiah((float)$row['net']) ?>
-                            </td>
+                            <td class="ps-4" style="width: 70%;"><?= e($kat['nama_kategori']) ?></td>
+                            <td class="text-end fw-semibold text-danger">-<?= rupiah((float)$kat['total']) ?></td>
                         </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2" class="text-end">GRAND TOTAL</td>
-                            <td class="text-end text-success"><?= rupiah($total_inflow ?? 0) ?></td>
-                            <td class="text-end text-danger"><?= rupiah($total_outflow ?? 0) ?></td>
-                            <td class="text-end <?= $netCashVal >= 0 ? 'text-success' : 'text-danger' ?>">
-                                <?= $netCashVal >= 0 ? '+' : '' ?><?= rupiah(abs($netCashVal)) ?>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        <?php endif; ?>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                <tr>
+                    <td class="ps-4 text-end text-muted small" style="border-bottom:1px solid #dee2e6;">Total Pengeluaran :</td>
+                    <td class="text-end fw-bold text-danger" style="border-bottom:1px solid #dee2e6;">-<?= rupiah($total_outflow ?? 0) ?></td>
+                </tr>
+
+                <!-- Net Flow & Balances -->
+                <tr>
+                    <td colspan="2" class="pt-4"></td>
+                </tr>
+                
+                <tr>
+                    <td class="fw-bold fs-6">Kenaikan/Penurunan Kas:</td>
+                    <td class="text-end fw-bold fs-6 <?= $net_cash >= 0 ? 'text-success' : 'text-danger' ?> border-bottom">
+                        <?= rupiah($net_cash) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="fw-bold text-muted mt-2">Saldo Awal (Per <?= formatDate(date('Y-m-d', strtotime($tanggal_dari . ' -1 day'))) ?>):</td>
+                    <td class="text-end fw-bold text-muted border-bottom pt-2">
+                        <?= rupiah($saldoAwal) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="fw-bold fs-5 text-dark pt-3 pb-4">Saldo Akhir:</td>
+                    <td class="text-end fw-bold fs-5 text-primary border-bottom pt-3 border-2 border-dark pb-4" style="border-bottom-style: double !important;">
+                        <?= rupiah($saldoAkhir) ?>
+                    </td>
+                </tr>
+
+                <!-- Kas & Bank Breakdown -->
+                <tr>
+                    <td colspan="2" class="fw-bold text-dark pt-4" style="font-size: 1.05rem;">Komposisi Kas & Bank (Berdasarkan Mutasi Total)</td>
+                </tr>
+                <tr>
+                    <td class="ps-4 text-muted pt-2 pb-1" style="font-weight: 500;">Kas Tunai</td>
+                    <td class="text-end fw-semibold text-dark pt-2 pb-1"><?= rupiah($totalCashPosition ?? 0) ?></td>
+                </tr>
+                <tr>
+                    <td class="ps-4 text-muted py-1" style="font-weight: 500;">Kas Bank</td>
+                    <td class="text-end fw-semibold text-dark py-1 border-bottom"><?= rupiah($totalBankPosition ?? 0) ?></td>
+                </tr>
+                <tr>
+                    <td class="ps-4 text-end text-muted small pt-2">Total Kas Aktual Terpisah :</td>
+                    <td class="text-end fw-bold text-dark pt-2"><?= rupiah(($totalCashPosition ?? 0) + ($totalBankPosition ?? 0)) ?></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <?php include BASE_PATH . '/views/laporan/_tandatangan.php'; ?>

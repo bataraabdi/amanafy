@@ -1,5 +1,12 @@
 <?php $settings = $settings ?? []; ?>
 <?php include BASE_PATH . '/views/laporan/_report_styles.php'; ?>
+<style>
+@media print {
+    .nav-tabs { display: none !important; }
+    .tab-pane { display: block !important; opacity: 1 !important; visibility: visible !important; }
+    .tab-content > .tab-pane { display: block !important; }
+}
+</style>
 
 <div class="report-page" id="report-content">
     <?php include BASE_PATH . '/views/laporan/_kop.php'; ?>
@@ -15,7 +22,7 @@
         <button onclick="window.print()"     class="rpt-btn print"><i class="bi bi-printer"></i> Print</button>
     </div>
 
-    <?php if (empty($positions)): ?>
+    <?php if (empty($positions) && empty($kategoriPemasukan) && empty($kategoriPengeluaran)): ?>
         <div class="rpt-empty"><i class="bi bi-inbox"></i><p>Belum ada data posisi dana.</p></div>
     <?php else: ?>
         <?php
@@ -23,7 +30,20 @@
         $colors = ['#3b82f6','#10b981','#8b5cf6','#ef4444','#f59e0b','#0d9488','#ec4899','#6366f1'];
         ?>
 
-        <!-- Fund Category Cards -->
+        <!-- Tabs container -->
+        <ul class="nav nav-tabs no-print mb-4" id="reportTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="posisi-tab" data-bs-toggle="tab" data-bs-target="#posisi-content" type="button" role="tab" aria-controls="posisi-content" aria-selected="true">Posisi Dana per Kategori</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="kategori-tab" data-bs-toggle="tab" data-bs-target="#kategori-content" type="button" role="tab" aria-controls="kategori-content" aria-selected="false">Rincian Kategori Pemasukan & Pengeluaran</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="reportTabsContent">
+            <!-- Posisi Dana Tab -->
+            <div class="tab-pane fade show active" id="posisi-content" role="tabpanel" aria-labelledby="posisi-tab">
+                <!-- Fund Category Cards -->
         <div class="row g-3 mb-4">
             <?php foreach ($positions as $i => $pos):
                 $pct = $grand_total > 0 ? round((float)$pos['total'] / $grand_total * 100, 1) : 0;
@@ -98,6 +118,86 @@
                 </table>
             </div>
         </div>
+        </div> <!-- end Posisi Dana Tab -->
+
+        <!-- Kategori Pemasukan & Pengeluaran Tab -->
+        <div class="tab-pane fade" id="kategori-content" role="tabpanel" aria-labelledby="kategori-tab">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="rpt-card mb-4" style="border-top: 4px solid #10b981;">
+                        <div class="rpt-card-header">
+                            <h6 class="mb-0"><i class="bi bi-box-arrow-in-down text-success me-2"></i>Kategori Pemasukan</h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="rpt-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Kategori</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if(empty($kategoriPemasukan)): ?>
+                                        <tr><td colspan="2" class="text-center text-muted">Belum ada data pemasukan.</td></tr>
+                                    <?php else: ?>
+                                        <?php foreach ($kategoriPemasukan as $kat): ?>
+                                            <tr>
+                                                <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;margin-right:.5rem;"></span><strong><?= e($kat['nama_kategori']) ?></strong></td>
+                                                <td class="text-end fw-bold text-success"><?= rupiah((float)$kat['total']) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td class="text-end fw-bold">TOTAL PEMASUKAN</td>
+                                        <td class="text-end fw-bold text-success"><?= rupiah($totalMasukKat ?? 0) ?></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="rpt-card mb-4" style="border-top: 4px solid #ef4444;">
+                        <div class="rpt-card-header">
+                            <h6 class="mb-0"><i class="bi bi-box-arrow-up text-danger me-2"></i>Kategori Pengeluaran</h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="rpt-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Kategori</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if(empty($kategoriPengeluaran)): ?>
+                                        <tr><td colspan="2" class="text-center text-muted">Belum ada data pengeluaran.</td></tr>
+                                    <?php else: ?>
+                                        <?php foreach ($kategoriPengeluaran as $kat): ?>
+                                            <tr>
+                                                <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-right:.5rem;"></span><strong><?= e($kat['nama_kategori']) ?></strong></td>
+                                                <td class="text-end fw-bold text-danger"><?= rupiah((float)$kat['total']) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td class="text-end fw-bold">TOTAL PENGELUARAN</td>
+                                        <td class="text-end fw-bold text-danger"><?= rupiah($totalKeluarKat ?? 0) ?></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- end Kategori Tab -->
+        </div> <!-- end tab content -->
 
         <?php include BASE_PATH . '/views/laporan/_tandatangan.php'; ?>
     <?php endif; ?>

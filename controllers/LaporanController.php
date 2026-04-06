@@ -28,11 +28,17 @@ class LaporanController extends Controller
         $bulan = $_GET['bulan'] ?? date('Y-m');
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
         $tahun = $_GET['tahun'] ?? date('Y');
+        $tanggal_dari = $_GET['tanggal_dari'] ?? date('Y-m-01');
+        $tanggal_sampai = $_GET['tanggal_sampai'] ?? date('Y-m-t');
 
         // Dispatch to specific report
         $method = str_replace('-', '', $report) . 'Report';
         if (method_exists($this, $method)) {
-            $this->$method($periode, $bulan, $tanggal, $tahun);
+            if ($report === 'arus-kas') {
+                $this->$method($periode, $bulan, $tanggal, $tahun, $tanggal_dari, $tanggal_sampai);
+            } else {
+                $this->$method($periode, $bulan, $tanggal, $tahun);
+            }
             return;
         }
 
@@ -136,41 +142,89 @@ class LaporanController extends Controller
         ]);
     }
 
-    public function aruskasReport($periode, $bulan, $tanggal, $tahun): void
+    public function aruskasReport($periode, $bulan, $tanggal, $tahun, $tanggal_dari, $tanggal_sampai): void
     {
         try {
+            require_once BASE_PATH . '/models/Pemasukan.php';
+            require_once BASE_PATH . '/models/Pengeluaran.php';
             require_once BASE_PATH . '/models/AccountMutation.php';
-            $mutations = new AccountMutation();
+            
+            require_once BASE_PATH . '/models/BankAccount.php';
+            require_once BASE_PATH . '/models/CashAccount.php';
+            
+            $pemasukan = new Pemasukan();
+            $pengeluaran = new Pengeluaran();
+            $bankAccount = new BankAccount();
+            $cashAccount = new CashAccount();
 
-            $where = $this->getPeriodWhere($periode, $tanggal, $bulan, $tahun);
+            // Always use custom dates for Arus Kas based on user selecting 'kustom' or overriding
+            if ($periode !== 'kustom') {
+                $periode = 'kustom';
+            }
+            
+            // 1. Get ALL Pemasukan by Kategori (LEFT JOIN to show even if 0)
+            $kategoriPemasukan = $pemasukan->query("
+                SELECT kp.nama_kategori, COALESCE(SUM(p.jumlah), 0) as total 
+                FROM kategori_pemasukan kp 
+                LEFT JOIN pemasukan p ON kp.id = p.kategori_id 
+                    AND p.tanggal >= ? AND p.tanggal <= ? 
+                GROUP BY kp.id, kp.nama_kategori 
+                ORDER BY kp.id ASC
+            ", [$tanggal_dari, $tanggal_sampai]);
+            $total_inflow = array_sum(array_column($kategoriPemasukan, 'total'));
 
-            $cashflow = $mutations->query("
-                SELECT 
-                    DATE(tanggal) as date,
-                    fund_category,
-                    SUM(CASE WHEN entry_type = 'debet' THEN amount ELSE 0 END) as inflow,
-                    SUM(CASE WHEN entry_type = 'kredit' THEN amount ELSE 0 END) as outflow,
-                    SUM(CASE WHEN entry_type = 'debet' THEN amount ELSE -amount END) as net
-                FROM account_mutations 
-                WHERE {$where}
-                GROUP BY DATE(tanggal), fund_category 
-                ORDER BY date DESC
-            ", []);
+            // 2. Get ALL Pengeluaran by Kategori (LEFT JOIN to show even if 0)
+            $kategoriPengeluaran = $pengeluaran->query("
+                SELECT kp.nama_kategori, COALESCE(SUM(p.jumlah), 0) as total 
+                FROM kategori_pengeluaran kp 
+                LEFT JOIN pengeluaran p ON kp.id = p.kategori_id 
+                    AND p.tanggal >= ? AND p.tanggal <= ? 
+                GROUP BY kp.id, kp.nama_kategori 
+                ORDER BY kp.id ASC
+            ", [$tanggal_dari, $tanggal_sampai]);
+            $total_outflow = array_sum(array_column($kategoriPengeluaran, 'total'));
+
+            // 3. Get Saldo Awal (Net mutation before tanggal_dari)
+            // Or calculate from all pemasukan/pengeluaran before tanggal_dari if they are the source of truth.
+            $saldoAwalPemasukan = $pemasukan->query("SELECT SUM(jumlah) as total FROM pemasukan WHERE tanggal < ?", [$tanggal_dari])[0]['total'] ?? 0;
+            $saldoAwalPengeluaran = $pengeluaran->query("SELECT SUM(jumlah) as total FROM pengeluaran WHERE tanggal < ?", [$tanggal_dari])[0]['total'] ?? 0;
+            $saldoAwal = (float)$saldoAwalPemasukan - (float)$saldoAwalPengeluaran;
+
+            $net_cash = $total_inflow - $total_outflow;
+            $saldoAkhir = $saldoAwal + $net_cash;
+
+            // 4. Get Actual Cash & Bank Positions based on tanggal_sampai
+            $bankPosition = $bankAccount->getAllWithPosition($tanggal_sampai);
+            $cashPosition = $cashAccount->getAllWithPosition($tanggal_sampai);
+
+            $totalBankPosition = 0;
+            foreach ($bankPosition as $item) {
+                $totalBankPosition += (float) ($item['saldo_posisi'] ?? 0);
+            }
+
+            $totalCashPosition = 0;
+            foreach ($cashPosition as $item) {
+                $totalCashPosition += (float) ($item['saldo_posisi'] ?? 0);
+            }
 
             $settings = $this->getReportSettings();
 
-            $total_inflow = array_sum(array_column($cashflow, 'inflow'));
-            $total_outflow = array_sum(array_column($cashflow, 'outflow'));
-            $net_cash = array_sum(array_column($cashflow, 'net'));
-
             $this->renderPage('laporan/arus-kas', [
                 'pageTitle' => 'Laporan Arus Kas',
-                'cashflow' => $cashflow,
-                'periode' => $periode,
-                'settings' => $settings,
+                'tanggal_dari' => $tanggal_dari,
+                'tanggal_sampai' => $tanggal_sampai,
+                'kategoriPemasukan' => $kategoriPemasukan,
+                'kategoriPengeluaran' => $kategoriPengeluaran,
                 'total_inflow' => $total_inflow,
                 'total_outflow' => $total_outflow,
-                'net_cash' => $net_cash
+                'net_cash' => $net_cash,
+                'saldoAwal' => $saldoAwal,
+                'saldoAkhir' => $saldoAkhir,
+                'bankPosition' => $bankPosition,
+                'cashPosition' => $cashPosition,
+                'totalBankPosition' => $totalBankPosition,
+                'totalCashPosition' => $totalCashPosition,
+                'settings' => $settings
             ]);
         } catch (Exception $e) {
             $this->setFlash('error', 'Error loading Arus Kas: ' . $e->getMessage());
@@ -249,13 +303,31 @@ class LaporanController extends Controller
         $endDate = $this->getEndDate($periode, $tanggal, $bulan, $tahun);
         $positions = $mutations->getNetByFundCategory($endDate);
 
+        require_once BASE_PATH . '/models/Pemasukan.php';
+        require_once BASE_PATH . '/models/Pengeluaran.php';
+
+        $pemasukan = new Pemasukan();
+        $pengeluaran = new Pengeluaran();
+
+        // For Posisi Dana (Balance Sheet point in time), we calculate accumulatively up to the endDate
+        $filters = [
+            'sampai_tanggal' => $endDate
+        ];
+
+        $kategoriPemasukan = $pemasukan->getTotalByKategori($filters);
+        $kategoriPengeluaran = $pengeluaran->getTotalByKategori($filters);
+
         $settings = $this->getReportSettings();
         $this->renderPage('laporan/posisi-dana', [
-            'pageTitle' => 'Laporan Posisi Dana',
+            'pageTitle' => 'Laporan Posisi Dana & Kategori',
             'positions' => $positions,
             'endDate' => $endDate,
             'settings' => $settings,
-            'grand_total' => array_sum(array_column($positions, 'total'))
+            'grand_total' => array_sum(array_column($positions, 'total')),
+            'kategoriPemasukan' => $kategoriPemasukan,
+            'kategoriPengeluaran' => $kategoriPengeluaran,
+            'totalMasukKat' => array_sum(array_column($kategoriPemasukan, 'total')),
+            'totalKeluarKat' => array_sum(array_column($kategoriPengeluaran, 'total'))
         ]);
     }
 
@@ -425,6 +497,8 @@ class LaporanController extends Controller
                 return date('Y-m-t', strtotime($bulan . '-01'));
             case 'tahunan':
                 return $tahun . '-12-31';
+            case 'kustom':
+                return $_GET['tanggal_sampai'] ?? date('Y-m-t');
             default:
                 return date('Y-m-d');
         }

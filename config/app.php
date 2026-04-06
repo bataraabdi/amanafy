@@ -10,7 +10,7 @@ $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $baseUrl = $protocol . '://' . $host . ($scriptDir === '/' ? '' : $scriptDir);
 
 define('APP_NAME', 'Kas Masjid');
-define('APP_VERSION', '1.4.1`');
+define('APP_VERSION', '1.4.1');
 define('BASE_URL', rtrim($baseUrl, '/'));
 define('BASE_PATH', rtrim(str_replace('\\', '/', dirname(__DIR__)), '/'));
 

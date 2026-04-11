@@ -26,6 +26,7 @@
 13. [FAQ](#-faq-pertanyaan-yang-sering-diajukan)
 14. [Changelog](#-changelog)
 15. [Ketentuan Penggunaan](#️-peringatan--ketentuan-penggunaan)
+16. [Lisensi](#-lisensi)
 
 ---
 
@@ -451,6 +452,38 @@ Aplikasi **Amanafy** disediakan untuk kepentingan edukasi, sosial, dan pengelola
 ### 🔄 Perubahan & Pembaruan
 * Pengembang berhak memperbarui, mengubah, atau menghentikan sebagian/seluruh fitur tanpa pemberitahuan sebelumnya.
 * Ketentuan ini dapat diperbarui sewaktu-waktu sesuai kebutuhan.
+
+---
+
+## 📜 Lisensi
+
+Aplikasi **Amanafy** dilisensikan di bawah **MIT License**.
+
+```
+MIT License
+
+Copyright (c) 2026 Amanafy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+> **Ringkasan**: Anda bebas menggunakan, menyalin, memodifikasi, dan mendistribusikan aplikasi ini untuk keperluan apa pun (termasuk penggunaan pribadi dan komunitas), **selama** tetap menyertakan atribusi hak cipta asli dan lisensi ini di setiap salinan atau bagian substansial dari aplikasi.
 
 ---
 

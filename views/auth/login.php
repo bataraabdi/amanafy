@@ -15,7 +15,7 @@ $appName = trim($appSettings['nama_masjid'] ?? '') ?: APP_NAME;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Kas Masjid</title>
+    <title>Login - Amanafy</title>
     <link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/img/favicon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -32,7 +32,7 @@ $appName = trim($appSettings['nama_masjid'] ?? '') ?: APP_NAME;
                     🕌
                 <?php endif; ?>
             </div>
-            <h3>Kas Masjid</h3>
+            <h3>Amanafy</h3>
             <p class="login-subtitle">Sistem Manajemen Keuangan Masjid</p>
 
             <?php if ($error): ?>
@@ -71,7 +71,7 @@ $appName = trim($appSettings['nama_masjid'] ?? '') ?: APP_NAME;
             </form>
 
             <div class="text-center mt-4">
-                <small class="text-muted">Kas Masjid v<?= APP_VERSION ?> &copy; <?= date('Y') ?></small>
+                <small class="text-muted">Amanafy v<?= APP_VERSION ?> &copy; <?= date('Y') ?></small>
             </div>
         </div>
     </div>

@@ -458,25 +458,25 @@ Aplikasi **Amanafy** disediakan untuk kepentingan edukasi, sosial, dan pengelola
 ## 📸 Preview Aplikasi
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-1.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-2.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-3.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-4.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-5.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-6.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-7.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-8.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-9.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-10.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-11.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-12.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-13.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-14.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-15.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-16.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-17.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-18.png" width="500"/>
-  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/main/assets/img/screenshot-19.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-1.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-2.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-3.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-4.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-5.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-6.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-7.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-8.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-9.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-10.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-11.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-12.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-13.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-14.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-15.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-16.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-17.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-18.png" width="500"/>
+  <img src="https://raw.githubusercontent.com/bataraabdi/amanafy/refs/heads/main/assets/img/Screenshoot-19.png" width="500"/>
 </p>
 
 ## 📜 Lisensi

@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%2B-blue?logo=php)](https://www.php.net/)
 [![MySQL](https://img.shields.io/badge/Database-MySQL%2FMariaDB-orange?logo=mysql)](https://www.mysql.com/)
 [![Bootstrap](https://img.shields.io/badge/UI-Bootstrap%205-purple?logo=bootstrap)](https://getbootstrap.com/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Amanafy](https://img.shields.io/badge/Status-Non--Komersial-red)](README.md)
 
 ---
 
@@ -25,7 +25,7 @@
 12. [Pengembangan](#-pengembangan)
 13. [FAQ](#-faq-pertanyaan-yang-sering-diajukan)
 14. [Changelog](#-changelog)
-15. [Lisensi](#-lisensi)
+15. [Ketentuan Penggunaan](#️-peringatan--ketentuan-penggunaan)
 
 ---
 
@@ -429,11 +429,28 @@ Pull request sangat disambut! Mohon ikuti langkah berikut:
 
 ---
 
-## 📄 Lisensi
+## ⚠️ PERINGATAN & KETENTUAN PENGGUNAAN
 
-Proyek ini dilisensikan di bawah [MIT License](LICENSE).
+Aplikasi **Amanafy** disediakan untuk kepentingan edukasi, sosial, dan pengelolaan yang bersifat **non-komersial**. Dengan menggunakan aplikasi ini, Anda dianggap telah memahami dan menyetujui ketentuan berikut:
 
-Anda bebas untuk **menggunakan**, **memodifikasi**, dan **mendistribusikan** ulang aplikasi ini, termasuk untuk penggunaan komersial, dengan syarat mencantumkan atribusi original.
+### 🚫 Larangan
+* **Dilarang** dengan sengaja maupun tidak sengaja memperjualbelikan aplikasi ini dalam bentuk apa pun.
+* **Dilarang** mengklaim aplikasi ini sebagai karya pribadi tanpa izin dari pengembang.
+* **Dilarang** mengubah, menghapus, atau menyembunyikan atribusi/hak cipta yang terdapat dalam aplikasi.
+* **Dilarang** menggunakan aplikasi untuk aktivitas ilegal, penipuan, atau penyalahgunaan data.
+* **Dilarang** mendistribusikan ulang aplikasi dalam bentuk berbayar, termasuk bundling dengan layanan lain tanpa izin resmi.
+
+### ⚖️ Konsekuensi Hukum
+* Segala bentuk pelanggaran, khususnya terkait perdagangan ilegal aplikasi, akan diproses sesuai dengan hukum yang berlaku.
+* Bukti transaksi, distribusi, atau aktivitas komersialisasi tanpa izin akan menjadi dasar tindakan hukum.
+
+### 🔐 Tanggung Jawab Pengguna
+* Pengguna bertanggung jawab penuh atas penggunaan, pengelolaan data, dan implementasi aplikasi.
+* Pengembang tidak bertanggung jawab atas kerugian yang timbul akibat penyalahgunaan aplikasi.
+
+### 🔄 Perubahan & Pembaruan
+* Pengembang berhak memperbarui, mengubah, atau menghentikan sebagian/seluruh fitur tanpa pemberitahuan sebelumnya.
+* Ketentuan ini dapat diperbarui sewaktu-waktu sesuai kebutuhan.
 
 ---
 

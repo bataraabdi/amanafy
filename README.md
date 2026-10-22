@@ -384,7 +384,7 @@ Pull request sangat disambut! Mohon ikuti langkah berikut:
 > A: Semua laporan dapat diekspor ke **Excel (.xlsx)** menggunakan SheetJS lokal, **PDF** menggunakan html2pdf lokal, dan **Print** langsung dari browser dengan margin cetak yang dioptimalkan secara offline (bebas ketergantungan CDN luar).
 
 **Q: Apakah Amanafy bisa digunakan di hosting (bukan lokal)?**
-> A: Ya, Amanafy kompatibel dengan hosting cPanel, DirectAdmin, VPS, maupun shared hosting (seperti InfinityFree / rf.gd). Sistem telah dilengkapi deteksi otomatis HTTPS reverse proxy, proteksi sesi, dan penyesuaian direktif Apache.
+> A: Ya, Amanafy kompatibel dengan hosting cPanel, DirectAdmin, VPS, maupun shared hosting. Sistem telah dilengkapi deteksi otomatis HTTPS reverse proxy, proteksi sesi, dan penyesuaian direktif Apache.
 
 **Q: Apakah perlu Composer untuk instalasi?**
 > A: Tidak. Amanafy tidak menggunakan framework PHP seperti Laravel atau CodeIgniter, sehingga tidak memerlukan Composer sama sekali.

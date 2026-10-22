@@ -51,7 +51,7 @@ Secara spesifik, aplikasi ini bertujuan untuk:
 | 1 | **Ringan & Tanpa Framework Besar** | Dibangun dengan Vanilla PHP 8+ tanpa Laravel/CodeIgniter, sehingga tidak perlu Composer dan mudah di-deploy di shared hosting manapun. |
 | 2 | **Dashboard Interaktif** | Visualisasi data keuangan real-time menggunakan Chart.js (grafik batang, pie chart distribusi kategori). |
 | 3 | **Multi-Role Pengguna** | Mendukung peran Administrator, Bendahara, dan Takmir dengan hak akses yang berbeda-beda. |
-| 4 | **Laporan Lengkap & Siap Cetak** | 7 jenis laporan keuangan (Arus Kas, Kas Tunai, Kas Bank, Posisi Dana, Realisasi Kegiatan, Program Donasi, Periodik) dengan fitur ekspor ke Excel & PDF. |
+| 4 | **Laporan Lengkap & Siap Cetak** | 8 jenis laporan keuangan (Buku Kas Umum / BKU, Arus Kas, Kas Tunai, Kas Bank, Posisi Dana, Realisasi Kegiatan, Program Donasi, Periodik) dengan fitur ekspor ke Excel, PDF, dan Cetak langsung. |
 | 5 | **Audit Log Terintegrasi** | Setiap aktivitas kritis (login, ubah data, hapus) tercatat otomatis untuk keamanan dan akuntabilitas. |
 | 6 | **Manajemen Kas Bank** | Mendukung pencatatan saldo kas tunai dan rekening bank masjid secara terpisah. |
 | 7 | **Backup Database Mudah** | Fitur backup database langsung dari antarmuka tanpa perlu akses server. |
@@ -78,12 +78,14 @@ Berikut adalah masalah nyata di lapangan yang diselesaikan oleh Amanafy:
 | Masalah | Solusi di Amanafy |
 |---------|-------------------|
 | Pencatatan keuangan masih manual di buku tulis, rawan hilang & salah hitung | Sistem database terpusat dengan validasi input |
-| Laporan keuangan sulit dibuat, memakan waktu lama | 7 jenis laporan otomatis siap cetak / ekspor PDF & Excel |
+| Laporan keuangan sulit dibuat, memakan waktu lama | 8 jenis laporan otomatis siap cetak / ekspor PDF & Excel |
 | Tidak ada transparansi penggunaan dana kepada jamaah | Halaman publik menampilkan program donasi & perkembangannya |
 | Pengurus sulit memantau saldo kas & bank secara bersamaan | Modul Kas Bank terintegrasi dengan dashboard saldo terkini |
+| Pengurus kesulitan melacak kronologi uang masuk, keluar, dan saldo berjalan | Modul Buku Kas Umum (BKU) dengan saldo awal otomatis, mutasi debet/kredit, dan running balance |
 | Data keuangan bisa diubah tanpa jejak oleh siapapun | Audit Log mencatat setiap perubahan data penting |
 | Banyak petugas mengakses sistem tanpa pembatasan hak | Sistem multi-role: Administrator, Bendahara, Takmir |
 | Program kegiatan & donasi dikelola terpisah dari keuangan | Modul Kegiatan & Donasi terintegrasi langsung dengan kas |
+| Kerentanan keamanan dan error pada shared hosting | Hardening keamanan berlapis (defense-in-depth upload, auto HTTPS reverse-proxy, anti-webshell) |
 
 ---
 
@@ -92,14 +94,14 @@ Berikut adalah masalah nyata di lapangan yang diselesaikan oleh Amanafy:
 ```
 Amanafy
 ├── Backend       : PHP 8.1+ (Vanilla PHP, pola MVC sederhana)
-├── Database      : MySQL / MariaDB (akses via PDO + prepared statements)
+├── Database      : MySQL / MariaDB (akses via PDO + prepared statements tanpa emulated prepares)
 ├── Frontend      : Bootstrap 5 + Tailwind CSS (untuk komponen spesifik)
 ├── Grafik        : Chart.js
 ├── Tabel Data    : DataTables (dengan fitur search & sort)
-├── Keamanan      : CSRF Protection, Login Throttling, Honeypot
+├── Keamanan      : CSRF Protection, Anti-Brute Force (Throttling), Honeypot, Defense-in-Depth Uploads & Backup Guard
 ├── Ikon          : Font Awesome 6 & Bootstrap Icons
-├── Export PDF    : html2pdf.js (Locally Hosted)
-└── Export Excel  : SheetJS / xlsx.js (Locally Hosted)
+├── Export PDF    : html2pdf.js (Locally Hosted, 100% Offline)
+└── Export Excel  : SheetJS / xlsx.js (Locally Hosted, 100% Offline)
 ```
 
 ---
@@ -238,26 +240,35 @@ Setelah instalasi, login dengan akun bawaan:
 - Mutasi rekening terintegrasi
 - Penjurnalan otomatis dari transaksi
 
-### 📑 Laporan Keuangan (7 Jenis)
-1. **Arus Kas** — Laporan cash flow masuk & keluar
-2. **Kas Tunai** — Posisi kas fisik
-3. **Kas Bank** — Mutasi rekening bank
-4. **Posisi Dana** — Neraca dana masjid
-5. **Realisasi Kegiatan** — Anggaran vs. realisasi per kegiatan
-6. **Program Donasi** — Progres penghimpunan donasi
-7. **Periodik** — Laporan harian / bulanan / tahunan
+### 📑 Laporan Keuangan (8 Jenis)
+1. **Buku Kas Umum (BKU)** — Standar pembukuan akuntansi kas masjid yang mencatat seluruh mutasi penerimaan (debet) dan pengeluaran (kredit) secara kronologis beserta saldo berjalan (*running balance*).
+   - Dilengkapi baris saldo awal periode otomatis berdasarkan kalkulasi riil kas & bank sebelumnya.
+   - Filter periode lengkap: Harian, Bulanan, Tahunan, dan Rentang Tanggal Kustom.
+   - Filter sumber akun terpadu: Semua Akun (Kas & Bank), Kas Tunai spesifik, atau Rekening Bank tertentu.
+   - Format angka akuntansi bersih tanpa penumpukan simbol mata uang berulang untuk kenyamanan rekapitulasi.
+2. **Arus Kas** — Laporan cash flow masuk & keluar berdasarkan kategori.
+3. **Kas Tunai** — Posisi fisik uang kas dan mutasi kas tunai operasional.
+4. **Kas Bank** — Mutasi dan rekonsiliasi seluruh rekening bank masjid.
+5. **Posisi Dana** — Neraca alokasi dana per kategori/program masjid (ISAK 35).
+6. **Realisasi Kegiatan** — Perbandingan anggaran rencana vs. realisasi aktual per program kegiatan.
+7. **Program Donasi** — Laporan progres penghimpunan dan penyaluran dana program donasi.
+8. **Periodik** — Laporan komparatif harian, bulanan, atau tahunan.
 
-> Semua laporan mendukung: 🖨️ **Print** | 📊 **Export Excel (SheetJS)** | 📄 **Export PDF (jsPDF)**
+> Semua laporan mendukung: 🖨️ **Print (Margin Optimal)** | 📊 **Export Excel (SheetJS)** | 📄 **Export PDF (html2pdf)** | 🏛️ **Kop Surat & Tanda Tangan Dinamis**
 
 ### 👤 Manajemen Pengguna
 - Tambah, edit, non-aktifkan akun pengguna
 - Role-based access: **Administrator**, **Bendahara**, **Takmir**
 
 ### 🔍 Keamanan & Audit Log
-- **Anti Brute-Force & Bot**: Proteksi login dengan *Rate Limiting / Throttling* dan *Honeypot*.
-- **CSRF Protection**: Token keamanan pada setiap form input.
-- **Pencatatan Otomatis**: Setiap aksi kritis dicatat di Audit Log.
-- **Informasi**: Pengguna, waktu, aksi, rincian data yang diubah.
+- **Anti Brute-Force & Bot**: Proteksi autentikasi login dengan *Rate Limiting / Throttling* dan *Honeypot*.
+- **CSRF Protection**: Token validasi ketat pada setiap formulir dan aksi mutasi data (POST).
+- **Defense-in-Depth Uploads**: Larangan eksekusi skrip PHP/CGI di direktori `uploads/` via aturan `.htaccess` dan penutupan indeks direktori dengan file *guard index*.
+- **Proteksi Berkas Sensitif**: Pemblokiran akses langsung web ke direktori `backups/`, file `.sql`, `.env`, `.git`, dan konfigurasi sistem.
+- **Strict Upload Validation**: Validasi tipe MIME riil, whitelist ekstensi aman, dan nama file unik acak anti-*path traversal*.
+- **Session & Cookie Hardening**: Regenerasi session ID (`session_regenerate_id(true)`), atribut cookie `SameSite=Lax`, dan deteksi otomatis SSL/HTTPS reverse proxy (Cloudflare & Shared Hosting).
+- **Anti-SQL Injection & XSS**: Menggunakan PDO prepared statements tanpa emulasi serta fungsi sanitasi/escaping `e()` global.
+- **Pencatatan Audit Otomatis**: Setiap aksi kritis dicatat di Audit Log lengkap dengan rincian pengguna, waktu, dan jenis aksi.
 
 ### ⚙️ Pengaturan
 - Profil masjid (nama, alamat, logo) — digunakan di header laporan (kop surat)
@@ -273,37 +284,43 @@ Setelah instalasi, login dengan akun bawaan:
 ```
 amanafy/
 ├── assets/
-│   ├── css/            ← Stylesheet custom
-│   ├── js/             ← Script JS (termasuk laporan.js untuk export)
-│   └── img/            ← Gambar & logo
+│   ├── css/            ← Stylesheet custom (style.css, components.css, layout.css, utilities.css)
+│   ├── js/             ← Script JS (app.js, laporan.js, report-export.js, html2pdf.bundle.min.js, xlsx.full.min.js)
+│   └── img/            ← Gambar, favicon, & logo
+├── backups/            ← Hasil backup database (akses langsung web ditutup)
 ├── config/
-│   └── database.php    ← Konfigurasi koneksi database
-├── controllers/        ← Logika bisnis (15 controller)
-├── core/               ← Inti sistem (Router, Session, Helper, BaseController)
-├── models/             ← Query database (akses via PDO)
-├── views/              ← Template antarmuka (18 modul)
-│   ├── layouts/        ← Layout utama (sidebar, navbar, footer)
-│   ├── dashboard/
-│   ├── pemasukan/
-│   ├── pengeluaran/
-│   ├── donatur/
-│   ├── kegiatan/
+│   ├── app.php         ← Konfigurasi aplikasi, path folder, & auto-detect HTTPS/Base URL
+│   └── database.php    ← Konfigurasi koneksi database PDO
+├── controllers/        ← Logika bisnis (15 controller: Laporan, Dashboard, Donasi, dll.)
+├── core/               ← Inti sistem (Router, Session, Helper, BaseController, Security, FinancialService, CSRF, AuditLog)
+├── database/           ← Skema awal & migrasi data SQL
+├── models/             ← Query database & entitas (akses via PDO prepared statements)
+├── uploads/            ← Media unggahan pengguna (diproteksi .htaccess & index.html anti-script execution)
+│   ├── bukti/
 │   ├── donasi/
-│   ├── kas-bank/
-│   ├── laporan/
-│   ├── users/
-│   ├── settings/
-│   ├── audit/
-│   ├── backup/
-│   ├── profil/
-│   ├── auth/
-│   └── public/         ← Halaman publik (tanpa login)
-├── database/           ← File SQL inisialisasi
-├── uploads/            ← Media yang diunggah pengguna
-├── backups/            ← Hasil backup database
-├── amanafy.sql         ← File SQL utama untuk import
-├── index.php           ← Entry point aplikasi
-└── .htaccess           ← URL rewriting (mod_rewrite)
+│   ├── kegiatan/
+│   ├── logo/
+│   └── qris/
+├── views/              ← Template antarmuka
+│   ├── layouts/        ← Layout utama (sidebar, header, main)
+│   ├── dashboard/      ← Dashboard admin interaktif
+│   ├── pemasukan/      ← CRUD & filter transaksi pemasukan
+│   ├── pengeluaran/    ← CRUD & filter transaksi pengeluaran
+│   ├── donatur/        ← Manajemen donatur tetap & berkala
+│   ├── kegiatan/       ← Modul kegiatan & anggaran
+│   ├── donasi/         ← Modul program donasi & flyer
+│   ├── kas-bank/       ← Rekening bank, kas tunai, & mutasi ISAK 35
+│   ├── laporan/        ← 8 jenis laporan (buku-kas-umum, arus-kas, dll.) + partials kop/ttd/export
+│   ├── users/          ← Manajemen user & hak akses
+│   ├── settings/       ← Pengaturan profil masjid & pejabat tanda tangan
+│   ├── audit/          ← Log jejak aktivitas pengguna
+│   ├── backup/         ← Backup database aman
+│   ├── profil/         ← Profil pengguna & ganti password
+│   ├── auth/           ← Autentikasi login dengan proteksi berlapis
+│   └── public/         ← Portal publik untuk jamaah (dashboard & donasi)
+├── amanafy.sql         ← File SQL utama untuk import database awal
+├── index.php           ← Entry point aplikasi dengan route & security gateway
+└── .htaccess           ← URL rewriting & pemblokiran file terlarang (.env, .git, .sql)
 ```
 
 ---
@@ -360,29 +377,32 @@ Pull request sangat disambut! Mohon ikuti langkah berikut:
 
 ## ❓ FAQ (Pertanyaan yang Sering Diajukan)
 
+**Q: Apakah Amanafy mendukung pembukuan Buku Kas Umum (BKU)?**
+> A: Ya, mulai versi 1.5.0 tersedia modul **Buku Kas Umum (BKU)** lengkap dengan baris saldo awal otomatis, mutasi penerimaan (debet), pengeluaran (kredit), saldo berjalan (*running balance*), serta filter akun dan periode yang fleksibel.
+
+**Q: Format apa yang didukung untuk ekspor laporan?**
+> A: Semua laporan dapat diekspor ke **Excel (.xlsx)** menggunakan SheetJS lokal, **PDF** menggunakan html2pdf lokal, dan **Print** langsung dari browser dengan margin cetak yang dioptimalkan secara offline (bebas ketergantungan CDN luar).
+
 **Q: Apakah Amanafy bisa digunakan di hosting (bukan lokal)?**
-> A: Ya, asalkan hosting mendukung PHP 8.1+ dan MySQL. Upload semua file ke public_html, import database, dan sesuaikan `config/database.php`.
+> A: Ya, Amanafy kompatibel dengan hosting cPanel, DirectAdmin, VPS, maupun shared hosting (seperti InfinityFree / rf.gd). Sistem telah dilengkapi deteksi otomatis HTTPS reverse proxy, proteksi sesi, dan penyesuaian direktif Apache.
 
 **Q: Apakah perlu Composer untuk instalasi?**
 > A: Tidak. Amanafy tidak menggunakan framework PHP seperti Laravel atau CodeIgniter, sehingga tidak memerlukan Composer sama sekali.
 
 **Q: Bagaimana cara mengganti nama / logo masjid di laporan?**
-> A: Masuk ke menu **Pengaturan → Profil Masjid**, isi nama masjid, alamat, nomor telepon, dan unggah logo. Data ini akan otomatis muncul di header (kop) semua laporan.
+> A: Masuk ke menu **Pengaturan → Profil Masjid**, isi nama masjid, alamat, nomor telepon, dan unggah logo. Data ini akan otomatis muncul di header (kop surat) semua laporan beserta tanda tangan pengurus.
 
 **Q: Apakah ada fitur logout otomatis?**
 > A: Ya! Amanafy dilengkapi fitur **Auto-Logout Sesi Idle**. Jika tidak ada aktivitas kursor/keyboard selama 15 menit, sistem akan otomatis mengeluarkan pengguna demi keamanan.
 
 **Q: Bagaimana jika gambar flyer donasi tidak muncul?**
-> A: Sistem secara cerdas akan memprioritaskan "Flyer Program" sebagai sampul utama. Jika flyer tidak diunggah, sistem akan mengambil gambar pertama dari Media Dokumentasi sebagai cadangan.
+> A: Sistem secara cerdas akan memprioritaskan "Flyer Program" sebagai sampul utama. Jika flyer tidak diunggah, sistem akan mengambil gambar pertama dari Media Dokumentasi sebagai cadangan, atau menampilkan visual fallback bawaan yang rapi.
 
 **Q: Bagaimana jika lupa password admin?**
 > A: Buka phpMyAdmin → tabel `users` → edit kolom `password` dengan hash bcrypt dari password baru Anda. Atau gunakan akun admin lain untuk mereset password.
 
 **Q: Bisakah satu akun memiliki lebih dari satu role?**
 > A: Saat ini tidak. Setiap akun hanya memiliki satu role (Administrator, Bendahara, atau Takmir).
-
-**Q: Format apa yang didukung untuk ekspor laporan?**
-> A: Laporan dapat diekspor ke **Excel (.xlsx)** menggunakan SheetJS, **PDF** menggunakan jsPDF, dan **Print** langsung dari browser.
 
 **Q: Apakah data aman jika server down?**
 > A: Gunakan fitur **Backup Database** secara berkala dari menu Backup. File SQL hasil backup dapat disimpan di penyimpanan lokal Anda.
@@ -391,7 +411,25 @@ Pull request sangat disambut! Mohon ikuti langkah berikut:
 
 ## 📋 Changelog
 
-### v1.4.1 — April 2026 (Terkini)
+### v1.5.0 — Oktober 2026 (Terkini)
+- 🌟 **Modul Buku Kas Umum (BKU)**: Implementasi penuh laporan Buku Kas Umum standar akuntansi masjid dengan pencatatan kronologis penerimaan, pengeluaran, dan saldo berjalan (*running balance*).
+  - Kalkulasi saldo awal periode secara otomatis berdasarkan saldo kas fisik dan rekening bank sebelum rentang tanggal yang dipilih.
+  - Filter periode super fleksibel: Harian, Bulanan, Tahunan, dan Rentang Tanggal Kustom.
+  - Filter sumber akun terpadu: Semua Akun (Kas & Bank), Kas Tunai spesifik, atau Rekening Bank tertentu.
+  - Format angka akuntansi bersih tanpa penumpukan simbol 'Rp' berulang agar mudah ditelaah dan direkap.
+  - Opsi ekspor terpadu: Cetak/Print (margin rapi), Export Excel (.xlsx), dan Export PDF (.pdf) dengan kop masjid & tanda tangan dinamis.
+- 🛡️ **Comprehensive Security Hardening & Defense-in-Depth**:
+  - Larangan eksekusi skrip PHP/CGI di folder `uploads/` melalui `.htaccess` dan proteksi index listing di seluruh subfolder upload & backup.
+  - Proteksi akses langsung web terhadap direktori sensitif (`backups/`, `.git`, `.env`, database SQL).
+  - Penguatan validasi unggah berkas (verifikasi tipe MIME riil, ekstensi whitelist, hashing nama unik acak anti-path traversal).
+  - Penegakan koneksi PDO yang aman tanpa emulated prepares untuk proteksi total dari SQL Injection.
+  - Penambahan proteksi Session Fixation (`session_regenerate_id`) dan konfigurasi cookie `SameSite=Lax`.
+- 🌐 **Optimasi Hosting & Kompatibilitas Remote Server**:
+  - Auto-detection protokol HTTPS melalui reverse-proxy (`HTTP_X_FORWARDED_PROTO`, port 443) untuk kompatibilitas penuh dengan Cloudflare dan shared hosting (seperti InfinityFree / rf.gd).
+  - Penyesuaian aturan Apache `.htaccess` untuk mencegah HTTP 500 internal server error pada server dengan konfigurasi legacy.
+  - Fallback gambar cerdas pada logo dan flyer program jika file fisik belum terunggah di hosting.
+
+### v1.4.1 — April 2026
 - ✅ **Auto-Logout Interaktif**: Implementasi fitur keamanan baru yang otomatis mengeluarkan pengguna jika terdeteksi *idle* (tidak ada aktivitas kursor/keyboard) selama 15 menit. Dilengkapi fitur *keep-alive ping* untuk menjaga kenyamanan kerja yang intensif.
 - ✅ **Sistem Sampul Donasi Cerdas**: Perbaikan logika penentuan gambar utama di Dashboard. Kini sistem secara otomatis memprioritaskan "Flyer Utama" sebagai sampul visual, dengan *fallback* cerdas ke dokumentasi kegiatan jika flyer kosong.
 - ✅ **Konsistensi UI Publik**: Penyelarasan gambar flyer agar tampil konsisten di Dashboard Admin, Portal Publik, maupun halaman detail donasi.

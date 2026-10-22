@@ -216,13 +216,27 @@ function sanitizeRichText(?string $html): string {
         return '';
     }
 
-    $html = preg_replace('#<\s*(script|style)[^>]*>.*?<\s*/\s*\\1>#is', '', $html);
+    // Strip script, style, and dangerous embedding tags
+    $html = preg_replace('#<\s*(script|style|iframe|object|embed|applet)[^>]*>.*?<\s*/\s*\\1>#is', '', $html);
     $html = strip_tags($html, '<p><br><strong><b><em><i><u><ul><ol><li><blockquote><h2><h3><h4><a>');
-    $html = preg_replace('/\s+on[a-z]+\s*=\s*("|\').*?\1/i', '', $html);
-    $html = preg_replace('/\s+(class|style|id|target)\s*=\s*("|\').*?\2/i', '', $html);
-    $html = preg_replace('/href\s*=\s*("|\')\s*javascript:[^"\']*\1/i', 'href="#"', $html);
 
-    return trim((string)$html);
+    // Strip all attributes from non-anchor tags, and restrict <a> only to safe href
+    $html = preg_replace_callback('/<([a-z0-9]+)(\s+[^>]*)?>/i', function($m) {
+        $tag = strtolower($m[1]);
+        if ($tag !== 'a') {
+            return '<' . $tag . '>';
+        }
+
+        $attrString = $m[2] ?? '';
+        if (preg_match('/href\s*=\s*["\']?\s*(https?:\/\/[^\s"\'>]+|mailto:[^\s"\'>]+|#[^\s"\'>]*|\/[^\s"\'>]*)/i', $attrString, $hrefMatch)) {
+            $cleanHref = htmlspecialchars(trim($hrefMatch[1]), ENT_QUOTES, 'UTF-8');
+            return '<a href="' . $cleanHref . '" rel="noopener noreferrer">';
+        }
+
+        return '<a href="#">';
+    }, $html);
+
+    return trim($html);
 }
 
 /**

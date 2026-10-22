@@ -4,13 +4,15 @@
  */
 
 function exportReport(type) {
-    const content = document.getElementById('report-content');
+    const content = document.getElementById('report-content') || document.getElementById('report-printable') || document.querySelector('.report-page');
     if (!content) {
         alert('Konten laporan tidak ditemukan.');
         return;
     }
 
-    const filename = 'laporan-' + new Date().toISOString().slice(0, 10);
+    const target = document.querySelector('.report-page') || content;
+    const customFilename = target.getAttribute('data-filename') || content.getAttribute('data-filename');
+    const filename = customFilename ? customFilename : ('laporan-' + new Date().toISOString().slice(0, 10));
 
     if (type === 'excel') {
         if (typeof XLSX === 'undefined') {
@@ -44,27 +46,32 @@ function exportReport(type) {
             }
         });
 
-        // Show signature block if present
+        // Show signature and kop blocks if present
         var ttd = document.querySelector('.report-ttd');
         if (ttd) ttd.classList.remove('d-none', 'd-print-block');
+
+        var kop = document.querySelector('.report-kop');
+        if (kop) kop.classList.remove('d-none', 'd-print-block');
+
+        var orientation = target.getAttribute('data-orientation') || 'portrait';
 
         var opt = {
             margin:      [10, 10, 10, 10],
             filename:    filename + '.pdf',
             image:       { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-            jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            jsPDF:       { unit: 'mm', format: 'a4', orientation: orientation }
         };
-
-        // Use the full report-page if available, otherwise fall back to report-content
-        var target = document.querySelector('.report-page') || content;
 
         html2pdf().set(opt).from(target).save().then(function() {
             // Restore hidden elements
             hiddenEls.forEach(function(el) { el.style.display = ''; });
-            // Re-hide signature block from screen
+            // Re-hide signature and kop block from screen
             if (ttd) {
                 ttd.classList.add('d-none', 'd-print-block');
+            }
+            if (kop) {
+                kop.classList.add('d-none', 'd-print-block');
             }
         });
     }

@@ -94,7 +94,8 @@ class Router {
 
         $controllerInstance = new $this->controller();
 
-        if (!method_exists($controllerInstance, $this->method)) {
+        // Ensure method exists, is public, and is not a constructor or magic method
+        if (!is_callable([$controllerInstance, $this->method]) || strpos($this->method, '__') === 0) {
             $this->error404();
             return;
         }

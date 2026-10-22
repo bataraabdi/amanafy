@@ -25,23 +25,43 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================
 // SWEETALERT HELPERS
 // ============================================
-function confirmDelete(formId, message = 'Data yang dihapus tidak dapat dikembalikan!') {
+
+// Helper function for confirm delete modal
+function confirmDelete(url, title, text) {
     Swal.fire({
-        title: 'Yakin hapus?',
-        text: message,
+
+
+        title: title || 'Apakah Anda yakin?',
+        text: text || "Data yang dihapus tidak dapat dikembalikan!",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#c62828',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Hapus!',
+
+
+
+        confirmColor: '#dc3545',
+        cancelColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-trash me-1"></i> Ya, Hapus!',
         cancelButtonText: 'Batal',
-        reverseButtons: true
+
+
+
+
+
+
+
+
+        reverseButtons: true,
+        customClass: {
+            confirmButton: 'btn btn-danger me-2',
+            cancelButton: 'btn btn-secondary'
+        },
+        buttonsStyling: false
     }).then((result) => {
         if (result.isConfirmed) {
-            document.getElementById(formId).submit();
+            showLoading();
+            window.location.href = url;
         }
     });
-    return false;
 }
 
 function showAlert(type, message) {
@@ -57,6 +77,34 @@ function showAlert(type, message) {
         }
     });
     Toast.fire({ icon: type, title: message });
+}
+
+// Helper function for AJAX success notification
+function showSuccessToast(message) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+}
+
+// Helper function for AJAX error notification
+function showErrorToast(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+    });
 }
 
 // ============================================
@@ -103,10 +151,14 @@ function initDataTable(tableId, options = {}) {
             infoFiltered: "(filter dari _MAX_ total data)",
             zeroRecords: "Data tidak ditemukan",
             paginate: {
-                first: "Pertama",
-                last: "Terakhir",
-                next: "&raquo;",
-                previous: "&laquo;"
+
+
+
+
+                first:      '<i class="fas fa-angle-double-left"></i>',
+                last:       '<i class="fas fa-angle-double-right"></i>',
+                next:       '<i class="fas fa-angle-right"></i>',
+                previous:   '<i class="fas fa-angle-left"></i>'
             }
         },
         responsive: true,
@@ -117,6 +169,49 @@ function initDataTable(tableId, options = {}) {
 
     return new DataTable('#' + tableId, { ...defaults, ...options });
 }
+
+// Auto initialize tooltips & popovers
+$(document).ready(function() {
+    // Tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Auto dismiss alerts after 5 seconds
+    setTimeout(function() {
+        $('.alert-dismissible').fadeOut('slow');
+    }, 5000);
+
+    // Global double-click protection and loading feedback on form submit
+    $('form').on('submit', function() {
+        var $form = $(this);
+        // Skip if form validation fails
+        if (this.checkValidity && !this.checkValidity()) {
+            return true;
+        }
+        if ($form.data('submitting') === true) {
+            return false;
+        }
+
+        var $submitBtn = $form.find('button[type="submit"], input[type="submit"]');
+        if ($submitBtn.length && !$submitBtn.hasClass('no-spinner')) {
+            $form.data('submitting', true);
+            $submitBtn.prop('disabled', true);
+            var originalText = $submitBtn.html();
+            $submitBtn.data('original-html', originalText);
+            $submitBtn.html('<i class="fas fa-spinner fa-spin me-1"></i> Memproses...');
+
+            // Safety fallback timeout to re-enable button if page does not redirect/reload
+            setTimeout(function() {
+                if ($form.data('submitting')) {
+                    $form.data('submitting', false);
+                    $submitBtn.prop('disabled', false).html(originalText);
+                }
+            }, 10000);
+        }
+    });
+});
 
 // ============================================
 // SHOW FLASH MESSAGES
@@ -233,15 +328,14 @@ function initSlugInputs() {
             titleInput.addEventListener('input', function() {
                 if (!slugEditedManually) {
                     slugInput.value = slugifyText(this.value);
+                    updatePreview();
                 }
-                updatePreview();
             });
         }
 
         slugInput.addEventListener('input', function() {
-            const sanitized = slugifyText(this.value);
-            slugEditedManually = sanitized !== '';
-            this.value = sanitized;
+            slugEditedManually = this.value.trim() !== '';
+            this.value = slugifyText(this.value);
             updatePreview();
         });
 
@@ -249,106 +343,6 @@ function initSlugInputs() {
     });
 }
 
-function initNoteEditors() {
-    document.querySelectorAll('[data-note-editor]').forEach(function(editor) {
-        const surface = editor.querySelector('[data-note-surface]');
-        const input = editor.querySelector('[data-note-input]');
-        if (!surface || !input) {
-            return;
-        }
-
-        const sync = function() {
-            input.value = surface.innerHTML.trim();
-        };
-
-        editor.querySelectorAll('.note-editor-btn').forEach(function(button) {
-            button.addEventListener('click', function() {
-                const command = this.dataset.command;
-                const value = this.dataset.value || null;
-
-                surface.focus();
-
-                if (command === 'createLink') {
-                    const url = window.prompt('Masukkan URL:', 'https://');
-                    if (url) {
-                        document.execCommand('createLink', false, url);
-                    }
-                } else if (command === 'blockquote') {
-                    document.execCommand('formatBlock', false, 'blockquote');
-                } else if (command === 'formatBlock') {
-                    document.execCommand('formatBlock', false, value || 'p');
-                } else {
-                    document.execCommand(command, false, value);
-                }
-
-                sync();
-            });
-        });
-
-        surface.addEventListener('input', sync);
-        const form = editor.closest('form');
-        if (form) {
-            form.addEventListener('submit', sync);
-        }
-    });
-}
-
-// ============================================
-// NUMBER INPUT HELPER
-// ============================================
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.input-rupiah').forEach(function(el) {
-        el.addEventListener('input', function() {
-            let value = this.value.replace(/[^0-9]/g, '');
-            if (value) {
-                this.value = parseInt(value).toLocaleString('id-ID');
-            }
-        });
-    });
-
     initSlugInputs();
-    initNoteEditors();
-});
-
-// ============================================
-// IDLE SESSION TRACKER
-// ============================================
-let idleTime = 0;
-let lastPingTime = 0;
-// 15 minutes (900 seconds) timeout
-const maxIdleTime = 15 * 60; 
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Only initialized if not on login page 
-    if (document.querySelector('.top-header')) {
-        setInterval(function() {
-            idleTime++;
-            if (idleTime >= maxIdleTime) {
-                const baseUrl = window.APP_BASE_URL || '';
-                window.location.href = baseUrl + '/logout?idle=1';
-            }
-        }, 1000);
-
-        // Reset idle timer on any user activity and ping server to keep session alive
-        const resetTimer = () => { 
-            idleTime = 0; 
-            const now = Date.now();
-            // Ping server at most once per minute (60000 ms) when active
-            if (now - lastPingTime > 60000) {
-                lastPingTime = now;
-                const baseUrl = window.APP_BASE_URL || '';
-                fetch(baseUrl + '/auth/ping').catch(()=>false);
-            }
-        };
-        
-        // Initialize once to set baseline
-        resetTimer();
-        
-        document.addEventListener('mousemove', resetTimer);
-        document.addEventListener('keypress', resetTimer);
-        document.addEventListener('keyup', resetTimer);
-        document.addEventListener('click', resetTimer);
-        document.addEventListener('scroll', resetTimer);
-        document.addEventListener('touchstart', resetTimer);
-    }
 });

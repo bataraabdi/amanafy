@@ -34,8 +34,21 @@ class Controller {
     }
 
     protected function redirectBack(): void {
-        $referer = $_SERVER['HTTP_REFERER'] ?? BASE_URL;
-        header("Location: " . $referer);
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        if (!empty($referer)) {
+            $parsedReferer = parse_url($referer);
+            $parsedBase = parse_url(BASE_URL);
+
+            $refererHost = $parsedReferer['host'] ?? '';
+            $baseHost = $parsedBase['host'] ?? 'localhost';
+
+            if ($refererHost === $baseHost) {
+                header("Location: " . $referer);
+                exit;
+            }
+        }
+
+        header("Location: " . BASE_URL . '/dashboard');
         exit;
     }
 
@@ -78,7 +91,7 @@ class Controller {
     }
 
     protected function uploadFile(array $file, string $destination, array $allowedTypes = ['jpg', 'jpeg', 'png', 'pdf']): ?string {
-        if ($file['error'] !== UPLOAD_ERR_OK || $file['size'] === 0) {
+        if ($file['error'] !== UPLOAD_ERR_OK || empty($file['tmp_name']) || $file['size'] === 0) {
             return null;
         }
 
@@ -89,9 +102,47 @@ class Controller {
         }
 
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($ext, $allowedTypes)) {
+
+        // Block dangerous extensions outright
+        $dangerousExts = ['php', 'phtml', 'phar', 'cgi', 'pl', 'py', 'sh', 'exe', 'bat', 'cmd', 'js', 'html', 'htm', 'svg', 'htaccess'];
+        if (in_array($ext, $dangerousExts, true) || !in_array($ext, $allowedTypes, true)) {
             $this->setFlash('error', 'Tipe file tidak diizinkan.');
             return null;
+        }
+
+        // Verify MIME type using finfo
+        $mimeMap = [
+            'jpg'  => ['image/jpeg', 'image/pjpeg'],
+            'jpeg' => ['image/jpeg', 'image/pjpeg'],
+            'png'  => ['image/png'],
+            'webp' => ['image/webp'],
+            'gif'  => ['image/gif'],
+            'pdf'  => ['application/pdf', 'application/x-pdf'],
+            'mp4'  => ['video/mp4'],
+            'mov'  => ['video/quicktime'],
+            'avi'  => ['video/x-msvideo', 'video/avi'],
+            'mkv'  => ['video/x-matroska'],
+            'webm' => ['video/webm'],
+        ];
+
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $detectedMime = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+
+            if (isset($mimeMap[$ext]) && !in_array($detectedMime, $mimeMap[$ext], true)) {
+                $this->setFlash('error', 'Konten file tidak sesuai dengan format ekstensi.');
+                return null;
+            }
+        }
+
+        // Validate image integrity for standard image formats
+        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'], true)) {
+            $imgInfo = @getimagesize($file['tmp_name']);
+            if ($imgInfo === false) {
+                $this->setFlash('error', 'File gambar tidak valid atau rusak.');
+                return null;
+            }
         }
 
         // Create directory if not exists

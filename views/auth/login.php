@@ -27,7 +27,7 @@ $appName = trim($appSettings['nama_masjid'] ?? '') ?: APP_NAME;
         <div class="login-card">
             <div class="login-icon<?= $appLogo !== '' ? ' has-logo' : '' ?>">
                 <?php if ($appLogo !== ''): ?>
-                    <img src="<?= BASE_URL ?>/uploads/logo/<?= e($appLogo) ?>" alt="Logo <?= e($appName) ?>">
+                    <img src="<?= BASE_URL ?>/uploads/logo/<?= e($appLogo) ?>" alt="Logo <?= e($appName) ?>" onerror="this.parentElement.innerHTML='🕌'; this.parentElement.classList.remove('has-logo');">
                 <?php else: ?>
                     🕌
                 <?php endif; ?>

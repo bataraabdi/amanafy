@@ -11,6 +11,9 @@ class Auth {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
+            // Regenerate session ID to prevent session fixation
+            session_regenerate_id(true);
+
             // Set session
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
@@ -96,8 +99,16 @@ class Auth {
         if (isset($_SESSION['user_id'])) {
             AuditLogger::log('LOGOUT', 'users', $_SESSION['user_id'], null, ['username' => $_SESSION['username'] ?? '']);
         }
-        session_unset();
+        $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
         session_destroy();
         session_start();
+        session_regenerate_id(true);
     }
 }

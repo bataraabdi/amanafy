@@ -34,7 +34,7 @@ class LaporanController extends Controller
         // Dispatch to specific report
         $method = str_replace('-', '', $report) . 'Report';
         if (method_exists($this, $method)) {
-            if ($report === 'arus-kas') {
+            if ($report === 'arus-kas' || $report === 'buku-kas-umum') {
                 $this->$method($periode, $bulan, $tanggal, $tahun, $tanggal_dari, $tanggal_sampai);
             } else {
                 $this->$method($periode, $bulan, $tanggal, $tahun);
@@ -130,6 +130,7 @@ class LaporanController extends Controller
             'totalBankPosition' => $totalBankPosition,
             'totalCashPosition' => $totalCashPosition,
             'available_reports' => $available_reports ?: [
+                'buku-kas-umum' => 'Buku Kas Umum (BKU)',
                 'arus-kas' => 'Arus Kas (Cash Flow)',
                 'kas-tunai' => 'Laporan Kas Tunai',
                 'kas-bank' => 'Laporan Kas Bank',
@@ -140,6 +141,261 @@ class LaporanController extends Controller
             ],
             'settings' => $this->getReportSettings()
         ]);
+    }
+
+    public function bukuKasUmum(): void
+    {
+        $this->requireRole(['Super Admin', 'Bendahara']);
+        $periode = $_GET['periode'] ?? 'bulanan';
+        $bulan = $_GET['bulan'] ?? date('Y-m');
+        $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
+        $tahun = $_GET['tahun'] ?? date('Y');
+        $tanggal_dari = $_GET['tanggal_dari'] ?? date('Y-m-01');
+        $tanggal_sampai = $_GET['tanggal_sampai'] ?? date('Y-m-t');
+
+        $this->bukukasumumReport($periode, $bulan, $tanggal, $tahun, $tanggal_dari, $tanggal_sampai);
+    }
+
+    public function bukukasumumReport($periode, $bulan, $tanggal, $tahun, $tanggal_dari = null, $tanggal_sampai = null): void
+    {
+        $this->requireRole(['Super Admin', 'Bendahara']);
+
+        try {
+            require_once BASE_PATH . '/models/Pemasukan.php';
+            require_once BASE_PATH . '/models/Pengeluaran.php';
+            require_once BASE_PATH . '/models/CashAccount.php';
+            require_once BASE_PATH . '/models/BankAccount.php';
+
+            $cashAccountModel = new CashAccount();
+            $bankAccountModel = new BankAccount();
+            $db = Database::getConnection();
+
+            // Account filter (e.g. 'cash:2', 'bank:1', or ''/'all')
+            $accountRef = $_GET['account_ref'] ?? '';
+            $accType = '';
+            $accId = 0;
+            if (!empty($accountRef) && $accountRef !== 'all') {
+                $parts = explode(':', $accountRef);
+                if (count($parts) === 2) {
+                    $accType = $parts[0];
+                    $accId = (int)$parts[1];
+                }
+            }
+
+            // Period resolution
+            $months = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            switch ($periode) {
+                case 'harian':
+                    $startDate = $tanggal;
+                    $endDate = $tanggal;
+                    $periodeLabel = 'Harian: ' . formatDate($tanggal);
+                    break;
+                case 'tahunan':
+                    $startDate = $tahun . '-01-01';
+                    $endDate = $tahun . '-12-31';
+                    $periodeLabel = 'Tahun ' . $tahun;
+                    break;
+                case 'kustom':
+                    $startDate = !empty($tanggal_dari) ? $tanggal_dari : date('Y-m-01');
+                    $endDate = !empty($tanggal_sampai) ? $tanggal_sampai : date('Y-m-t');
+                    $periodeLabel = formatDate($startDate) . ' s.d. ' . formatDate($endDate);
+                    break;
+                case 'bulanan':
+                default:
+                    $periode = 'bulanan';
+                    $startDate = $bulan . '-01';
+                    $endDate = date('Y-m-t', strtotime($startDate));
+                    $bParts = explode('-', $bulan);
+                    $bIdx = (int)($bParts[1] ?? date('m'));
+                    $bYr = $bParts[0] ?? date('Y');
+                    $periodeLabel = ($months[$bIdx] ?? '') . ' ' . $bYr;
+                    break;
+            }
+
+            // Saldo Awal calculation (as of day before startDate)
+            $prevDate = date('Y-m-d', strtotime($startDate . ' -1 day'));
+            $cashPositions = $cashAccountModel->getAllWithPosition($prevDate);
+            $bankPositions = $bankAccountModel->getAllWithPosition($prevDate);
+
+            $saldoAwal = 0.0;
+            if ($accType === 'cash') {
+                foreach ($cashPositions as $cp) {
+                    if ((int)$cp['id'] === $accId) {
+                        $saldoAwal = (float)($cp['saldo_posisi'] ?? 0);
+                        break;
+                    }
+                }
+            } elseif ($accType === 'bank') {
+                foreach ($bankPositions as $bp) {
+                    if ((int)$bp['id'] === $accId) {
+                        $saldoAwal = (float)($bp['saldo_posisi'] ?? 0);
+                        break;
+                    }
+                }
+            } else {
+                foreach ($cashPositions as $cp) {
+                    $saldoAwal += (float)($cp['saldo_posisi'] ?? 0);
+                }
+                foreach ($bankPositions as $bp) {
+                    $saldoAwal += (float)($bp['saldo_posisi'] ?? 0);
+                }
+            }
+
+            // Fetch Pemasukan
+            $sqlIn = "SELECT 
+                        p.id, 
+                        p.tanggal, 
+                        'pemasukan' AS jenis, 
+                        CONCAT('IN-', LPAD(p.id, 5, '0')) AS no_bukti,
+                        COALESCE(kp.nama_kategori, 'Pemasukan Kas') AS nama_kategori,
+                        p.jumlah AS masuk, 
+                        0.00 AS keluar,
+                        p.keterangan, 
+                        COALESCE(d.nama_donatur, p.nama_donatur, '-') AS pihak_terkait,
+                        p.metode_pembayaran,
+                        p.account_type,
+                        p.account_id,
+                        p.fund_category,
+                        p.bukti_transfer AS bukti_file,
+                        u.nama_lengkap AS nama_petugas,
+                        COALESCE(ca.nama_kas, CONCAT(ba.nama_bank, ' - ', ba.nomor_rekening), 'Kas') AS nama_akun,
+                        p.created_at
+                      FROM pemasukan p
+                      LEFT JOIN kategori_pemasukan kp ON p.kategori_id = kp.id
+                      LEFT JOIN donatur d ON p.donatur_id = d.id
+                      LEFT JOIN users u ON p.user_id = u.id
+                      LEFT JOIN cash_accounts ca ON p.account_type = 'cash' AND p.account_id = ca.id
+                      LEFT JOIN bank_accounts ba ON p.account_type = 'bank' AND p.account_id = ba.id
+                      WHERE p.tanggal >= :start_date AND p.tanggal <= :end_date";
+
+            $paramsIn = [':start_date' => $startDate, ':end_date' => $endDate];
+            if (!empty($accType)) {
+                $sqlIn .= " AND p.account_type = :acc_type AND p.account_id = :acc_id";
+                $paramsIn[':acc_type'] = $accType;
+                $paramsIn[':acc_id'] = $accId;
+            }
+
+            $stmtIn = $db->prepare($sqlIn);
+            $stmtIn->execute($paramsIn);
+            $rowsIn = $stmtIn->fetchAll(PDO::FETCH_ASSOC);
+
+            // Fetch Pengeluaran
+            $sqlOut = "SELECT 
+                        p.id, 
+                        p.tanggal, 
+                        'pengeluaran' AS jenis, 
+                        CONCAT('OUT-', LPAD(p.id, 5, '0')) AS no_bukti,
+                        COALESCE(kp.nama_kategori, 'Pengeluaran Kas') AS nama_kategori,
+                        0.00 AS masuk, 
+                        p.jumlah AS keluar,
+                        p.keterangan, 
+                        COALESCE(p.penerima, '-') AS pihak_terkait,
+                        'tunai' AS metode_pembayaran,
+                        p.account_type,
+                        p.account_id,
+                        p.fund_category,
+                        p.bukti_nota AS bukti_file,
+                        u.nama_lengkap AS nama_petugas,
+                        COALESCE(ca.nama_kas, CONCAT(ba.nama_bank, ' - ', ba.nomor_rekening), 'Kas') AS nama_akun,
+                        p.created_at
+                      FROM pengeluaran p
+                      LEFT JOIN kategori_pengeluaran kp ON p.kategori_id = kp.id
+                      LEFT JOIN users u ON p.user_id = u.id
+                      LEFT JOIN cash_accounts ca ON p.account_type = 'cash' AND p.account_id = ca.id
+                      LEFT JOIN bank_accounts ba ON p.account_type = 'bank' AND p.account_id = ba.id
+                      WHERE p.tanggal >= :start_date AND p.tanggal <= :end_date";
+
+            $paramsOut = [':start_date' => $startDate, ':end_date' => $endDate];
+            if (!empty($accType)) {
+                $sqlOut .= " AND p.account_type = :acc_type AND p.account_id = :acc_id";
+                $paramsOut[':acc_type'] = $accType;
+                $paramsOut[':acc_id'] = $accId;
+            }
+
+            $stmtOut = $db->prepare($sqlOut);
+            $stmtOut->execute($paramsOut);
+            $rowsOut = $stmtOut->fetchAll(PDO::FETCH_ASSOC);
+
+            // Merge & Sort Chronologically
+            $transactions = array_merge($rowsIn, $rowsOut);
+            usort($transactions, function($a, $b) {
+                $cmpDate = strcmp($a['tanggal'], $b['tanggal']);
+                if ($cmpDate !== 0) return $cmpDate;
+                $cmpCreated = strcmp($a['created_at'] ?? '', $b['created_at'] ?? '');
+                if ($cmpCreated !== 0) return $cmpCreated;
+                return ((int)($a['id'] ?? 0)) <=> ((int)($b['id'] ?? 0));
+            });
+
+            // Compute running balance
+            $runningBalance = $saldoAwal;
+            $totalMasuk = 0.0;
+            $totalKeluar = 0.0;
+            foreach ($transactions as &$tx) {
+                $m = (float)$tx['masuk'];
+                $k = (float)$tx['keluar'];
+                $totalMasuk += $m;
+                $totalKeluar += $k;
+                $runningBalance += ($m - $k);
+                $tx['saldo_berjalan'] = $runningBalance;
+            }
+            unset($tx);
+
+            $saldoAkhir = $runningBalance;
+            $surplusDefisit = $totalMasuk - $totalKeluar;
+
+            // Account list for filter options
+            $cashAccountsList = $cashAccountModel->getAllAccounts(false);
+            $bankAccountsList = $bankAccountModel->getAllAccounts(false);
+
+            // Selected account label
+            $selectedAccountLabel = 'Semua Akun (Kas & Bank)';
+            if ($accType === 'cash') {
+                foreach ($cashAccountsList as $c) {
+                    if ((int)$c['id'] === $accId) {
+                        $selectedAccountLabel = $c['nama_kas'] . ' (Kas Tunai)';
+                        break;
+                    }
+                }
+            } elseif ($accType === 'bank') {
+                foreach ($bankAccountsList as $b) {
+                    if ((int)$b['id'] === $accId) {
+                        $selectedAccountLabel = $b['nama_bank'] . ' - ' . $b['nomor_rekening'];
+                        break;
+                    }
+                }
+            }
+
+            $settings = $this->getReportSettings();
+
+            $this->renderPage('laporan/buku-kas-umum', [
+                'pageTitle'            => 'Buku Kas Umum (BKU)',
+                'periode'              => $periode,
+                'periodeLabel'         => $periodeLabel,
+                'startDate'            => $startDate,
+                'endDate'              => $endDate,
+                'prevDate'             => $prevDate,
+                'bulan'                => $bulan,
+                'tahun'                => $tahun,
+                'tanggal'              => $tanggal,
+                'tanggal_dari'         => $tanggal_dari ?: $startDate,
+                'tanggal_sampai'       => $tanggal_sampai ?: $endDate,
+                'accountRef'           => $accountRef,
+                'selectedAccountLabel' => $selectedAccountLabel,
+                'cashAccountsList'     => $cashAccountsList,
+                'bankAccountsList'     => $bankAccountsList,
+                'saldoAwal'            => $saldoAwal,
+                'totalMasuk'           => $totalMasuk,
+                'totalKeluar'          => $totalKeluar,
+                'surplusDefisit'       => $surplusDefisit,
+                'saldoAkhir'           => $saldoAkhir,
+                'transactions'         => $transactions,
+                'countTrans'           => count($transactions),
+                'settings'             => $settings,
+            ]);
+        } catch (Exception $e) {
+            $this->setFlash('error', 'Error memuat Buku Kas Umum: ' . $e->getMessage());
+            $this->redirect('laporan');
+        }
     }
 
     public function aruskasReport($periode, $bulan, $tanggal, $tahun, $tanggal_dari, $tanggal_sampai): void

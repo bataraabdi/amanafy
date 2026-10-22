@@ -160,7 +160,7 @@ $bulanNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus
     <div class="public-header text-center">
         <div class="container">
             <?php if (!empty($settings['logo'])): ?>
-                <img src="<?= BASE_URL ?>/uploads/logo/<?= e($settings['logo']) ?>" style="width: 90px; height: 90px; object-fit: contain; background: #fff; padding: 8px; border-radius: 24px; margin-bottom: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);" alt="Logo">
+                <img src="<?= BASE_URL ?>/uploads/logo/<?= e($settings['logo']) ?>" style="width: 90px; height: 90px; object-fit: contain; background: #fff; padding: 8px; border-radius: 24px; margin-bottom: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);" alt="Logo" onerror="this.outerHTML='<div style=\'font-size:3.5rem; margin-bottom:20px;\'>🕌</div>';">
             <?php else: ?>
                 <div style="font-size:3.5rem; margin-bottom:20px;">🕌</div>
             <?php endif; ?>

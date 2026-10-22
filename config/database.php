@@ -24,7 +24,9 @@ class Database {
                     PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
                 ]);
             } catch (PDOException $e) {
-                die("Database connection failed: " . $e->getMessage());
+                error_log("Database connection failed: " . $e->getMessage());
+                http_response_code(500);
+                die("Koneksi database gagal. Silakan periksa konfigurasi server.");
             }
         }
         return self::$instance;

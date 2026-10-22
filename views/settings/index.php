@@ -9,7 +9,7 @@
 
     <div class="row g-4">
         <div class="col-lg-3">
-            <div class="card-custom sticky-top" style="top: 1.5rem;">
+            <div class="card-custom settings-menu-card">
                 <div class="card-body-custom p-2">
                     <div class="nav flex-column nav-pills settings-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                         <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-umum" type="button" role="tab">
@@ -71,7 +71,7 @@
                                         <label class="form-label-custom d-block">Logo Masjid</label>
                                         <div class="logo-preview-wrapper mb-2">
                                             <?php if (!empty($s['logo'])): ?>
-                                                <img src="<?= BASE_URL ?>/uploads/logo/<?= e($s['logo']) ?>" alt="Logo" class="img-thumbnail" style="max-height: 120px; border-radius: 12px;">
+                                                <img src="<?= BASE_URL ?>/uploads/logo/<?= e($s['logo']) ?>" alt="Logo" class="img-thumbnail" style="max-height: 120px; border-radius: 12px;" onerror="this.outerHTML='<div class=\'bg-light border rounded d-flex align-items-center justify-content-center\' style=\'height: 120px; width: 120px; margin: 0 auto;\'><i class=\'bi bi-image text-muted\' style=\'font-size: 2rem;\'></i></div>';">
                                             <?php else: ?>
                                                 <div class="bg-light border rounded d-flex align-items-center justify-content-center" style="height: 120px; width: 120px; margin: 0 auto;">
                                                     <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
@@ -420,6 +420,38 @@
 </div>
 
 <style>
+/* Sticky sidebar on desktop only, placed below header (top: 5rem) */
+@media (min-width: 992px) {
+    .settings-menu-card {
+        position: sticky;
+        top: 5rem;
+        z-index: 1010;
+    }
+}
+
+/* Mobile tab bar styling */
+@media (max-width: 991.98px) {
+    .settings-menu-card {
+        position: static;
+        margin-bottom: 1rem;
+    }
+    .settings-nav {
+        flex-direction: row !important;
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-wrap: nowrap !important;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .settings-nav .nav-link {
+        flex: 0 0 auto;
+        margin-bottom: 0;
+        margin-right: 6px;
+        font-size: 0.82rem;
+        padding: 8px 14px;
+    }
+}
+
 .settings-nav .nav-link {
     text-align: left;
     padding: 12px 20px;

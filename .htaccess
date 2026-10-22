@@ -1,16 +1,21 @@
 RewriteEngine On
-RewriteBase /amanafy/
 
-# Protect sensitive directories
+# Protect sensitive directories & files
 RewriteRule ^config/ - [F,L]
 RewriteRule ^core/ - [F,L]
 RewriteRule ^controllers/ - [F,L]
 RewriteRule ^models/ - [F,L]
 RewriteRule ^views/ - [F,L]
 RewriteRule ^database/ - [F,L]
+RewriteRule ^backups/ - [F,L]
 RewriteRule ^vendor/ - [F,L]
+RewriteRule ^uploads/.*\.(php|phtml|phar|pl|py|jsp|asp|sh|cgi)$ - [F,L]
+RewriteRule ^\.git - [F,L]
+RewriteRule ^\.continue - [F,L]
+RewriteRule ^\.roomodes - [F,L]
+RewriteRule \.(sql|md|log|bak|old)$ - [F,L]
 
-# Allow direct access to assets
+# Allow direct access to assets & uploads
 RewriteRule ^assets/ - [L]
 RewriteRule ^uploads/ - [L]
 

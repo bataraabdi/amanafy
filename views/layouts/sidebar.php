@@ -9,7 +9,7 @@ $namaApp = $appSettings['nama_masjid'] ?? APP_NAME;
 <aside class="sidebar">
     <div class="sidebar-header">
         <?php if (!empty($appSettings['logo'])): ?>
-            <img src="<?= BASE_URL ?>/uploads/logo/<?= e($appSettings['logo']) ?>" alt="Logo" class="mosque-icon" style="object-fit: contain; background: #fff; padding: 2px;">
+            <img src="<?= BASE_URL ?>/uploads/logo/<?= e($appSettings['logo']) ?>" alt="Logo" class="mosque-icon" style="object-fit: contain; background: #fff; padding: 2px;" onerror="this.outerHTML='<div class=\'mosque-icon\'>🕌</div>';">
         <?php else: ?>
             <div class="mosque-icon">🕌</div>
         <?php endif; ?>
@@ -68,6 +68,11 @@ $namaApp = $appSettings['nama_masjid'] ?? APP_NAME;
         <div class="nav-item">
             <a href="<?= BASE_URL ?>/laporan" class="nav-link <?= (isActiveMenu('laporan') && !isset($_GET['report'])) ? 'active' : '' ?>">
                 <i class="bi bi-pie-chart-fill"></i> Ikhtisar Laporan
+            </a>
+        </div>
+        <div class="nav-item">
+            <a href="<?= BASE_URL ?>/laporan?report=buku-kas-umum" class="nav-link <?= (isset($_GET['report']) && $_GET['report'] == 'buku-kas-umum') || (isset($_GET['url']) && strpos($_GET['url'], 'laporan/buku-kas-umum') === 0) ? 'active' : '' ?>">
+                <i class="bi bi-journal-bookmark-fill"></i> Buku Kas Umum
             </a>
         </div>
         <div class="nav-item">

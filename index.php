@@ -12,9 +12,18 @@ ini_set('log_errors', 1);
 // Optimization & Security for Session
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
-if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+ini_set('session.cookie_samesite', 'Lax');
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+    || (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
+    || (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+
+if ($isHttps) {
     ini_set('session.cookie_secure', 1);
 }
+
+// Remove technology exposure header
+header_remove('X-Powered-By');
 
 // Start session
 if (session_status() === PHP_SESSION_NONE) {
@@ -43,11 +52,15 @@ require_once __DIR__ . '/core/Model.php';
 require_once __DIR__ . '/core/Controller.php';
 require_once __DIR__ . '/core/Router.php';
 
-// Create upload directories if they don't exist
+// Create upload directories if they don't exist and protect from directory listing
 $uploadDirs = [UPLOAD_PATH, UPLOAD_BUKTI, UPLOAD_LOGO, UPLOAD_KEGIATAN, UPLOAD_DONASI, UPLOAD_QRIS, BACKUP_PATH];
 foreach ($uploadDirs as $dir) {
     if (!is_dir($dir)) {
         @mkdir($dir, 0755, true);
+    }
+    $indexGuard = rtrim($dir, '/\\') . '/index.html';
+    if (!file_exists($indexGuard)) {
+        @file_put_contents($indexGuard, '<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body><h1>Directory access is forbidden.</h1></body></html>');
     }
 }
 
